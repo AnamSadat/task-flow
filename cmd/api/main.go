@@ -5,10 +5,22 @@ import (
 	"log"
 	"net/http"
 
+	"task-flow/internal/config"
 	"task-flow/internal/middleware"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
+	// Connect database
+	db := config.ConnectDB()
+	defer db.Close()
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
