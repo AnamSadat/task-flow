@@ -11,6 +11,20 @@ func JSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+func DecodeJSON(w http.ResponseWriter, r *http.Request, dst any) bool {
+	r.Body = http.MaxBytesReader(w, r.Body, 1 << 20)
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	if err := dec.Decode(dst); err != nil {
+		Error(w, http.StatusBadRequest, "invalid json")
+		
+		return false
+	}
+
+	return true
+}
+
 func Error(w http.ResponseWriter, status int, msg string) {
 	JSON(w, status, map[string] string {"error": msg})
 }
