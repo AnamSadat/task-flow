@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"task-flow/internal/config"
+	"task-flow/internal/handler"
 	"task-flow/internal/middleware"
+	"task-flow/internal/router"
 
 	"github.com/joho/godotenv"
 )
@@ -21,15 +22,21 @@ func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	mux := http.NewServeMux()
+	// TODO: Initialize repositories
+	// userRepo := mysql.NewUserRepo(db)
+	// refreshRepo := mysql.NewRefreshTokenRepo(db)
 
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "OK",
-			"message": "Server is running!",
-		})
-	})
+	// TODO: Initialize services
+	// jwtInstance := jwt.New([]byte(os.Getenv("JWT_SECRET")))
+	// authService := auth.NewService(userRepo, refreshRepo, jwtInstance, 15*time.Minute, 7*24*time.Hour)
+
+	// Initialize handlers
+	// authHandler := handler.NewAuthHandler(authService)
+	authHandler := &handler.AuthHandler{} // Placeholder until repos are implemented
+	taskHandler := handler.NewTaskHandler()
+
+	// Setup router
+	mux := router.New(authHandler, taskHandler)
 
 	log.Println("server running on :3000")
 	log.Fatal(http.ListenAndServe(":3000", middleware.Logger(mux)))
