@@ -21,6 +21,9 @@ type Service struct {
 	JWT        *jwt.JWT
 	AccessTTL  time.Duration
 	RefreshTTL time.Duration
+
+	CookieDomain string
+	CookieSecure bool
 }
 
 func NewService(
