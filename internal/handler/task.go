@@ -4,22 +4,46 @@ import (
 	"net/http"
 
 	"task-flow/internal/httpx"
+	taskservice "task-flow/internal/service"
 )
 
 type TaskHandler struct {
-	// Add task service here when ready
+	Service *taskservice.Service
 }
 
-func NewTaskHandler() *TaskHandler {
-	return &TaskHandler{}
+func NewTaskHandler(task *taskservice.Service) *TaskHandler {
+	return &TaskHandler{
+		Service: task,
+	}
 }
 
-func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement
-	httpx.JSON(w, http.StatusOK, map[string]string{"message": "list tasks"})
+type taskRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
-func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement
-	httpx.JSON(w, http.StatusCreated, map[string]string{"message": "task created"})
+func (h *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.Service.GetTasks(r.Context())
+	if err != nil {
+		httpx.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, tasks)
+}
+
+func (h *TaskHandler) AddTask(w http.ResponseWriter, r *http.Request) {
+	var req taskRequest
+
+	if !httpx.DecodeJSON(w, r, &req) {
+		return
+	}
+
+	err := h.Service.AddTask(r.Context(), req.Title, req.Description)
+	if err != nil {
+		httpx.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusCreated, map[string]string{"message": " Add new task successfully"})
 }
