@@ -11,7 +11,11 @@ import (
 	"task-flow/internal/config"
 	"task-flow/internal/handler"
 	"task-flow/internal/middleware"
+	"task-flow/internal/pkg/jwt"
+	"task-flow/internal/repository/mysql"
 	"task-flow/internal/router"
+	"task-flow/internal/service"
+	authservice "task-flow/internal/service/auth"
 
 	"github.com/joho/godotenv"
 )
@@ -28,21 +32,33 @@ func main() {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	// TODO: Initialize repositories
-	// userRepo := repository.NewUserRepo(db)
-	// refreshRepo := repository.NewRefreshTokenRepo(db)
+	// Initialize repositories
+	userRepo := mysql.NewUserRepo(db)
+	refreshRepo := mysql.NewRefreshTokenRepo(db)
+	taskRepo := mysql.NewTaskRepo(db)
 
-	// TODO: Initialize services
-	// jwtInstance := jwt.New([]byte(cfg.JWTSecret))
-	// authSvc := authservice.NewService(userRepo, refreshRepo, jwtInstance, cfg.AccessTTL, cfg.RefreshTTL)
+	// Initialize JWT
+	jwtInstance := jwt.New([]byte(cfg.JWTSecret))
+
+	// Initialize middleware
+	authMid := middleware.NewAuthMiddleware(jwtInstance)
+
+	// Initialize services
+	authSvc := authservice.NewService(userRepo, refreshRepo, jwtInstance, cfg.AccessTTL, cfg.RefreshTTL)
+	taskSvc := service.NewServiceTask(taskRepo)
 
 	// Initialize handlers
-	// authHandler := handler.NewAuthHandler(authSvc)
-	authHandler := &handler.AuthHandler{} // Placeholder
-	taskHandler := handler.NewTaskHandler()
+	authHandler := handler.NewAuthHandler(authSvc)
+	userHandler := handler.NewUserHandler(userRepo)
+	taskHandler := handler.NewTaskHandler(taskSvc)
 
 	// Setup router
-	mux := router.New(authHandler, taskHandler)
+	mux := router.New(router.Deps{
+		AuthHandler: authHandler,
+		TaskHandler: taskHandler,
+		UserHandler: userHandler,
+		AuthMid:     authMid,
+	})
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,
