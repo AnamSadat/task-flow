@@ -78,3 +78,22 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, map[string]string{"message": "logged out"})
 }
+
+type registerRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req registerRequest
+	if !httpx.DecodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := h.service.Register(r.Context(), req.Email, req.Password); err != nil {
+		httpx.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusCreated, map[string]string{"message": "registered"})
+}
