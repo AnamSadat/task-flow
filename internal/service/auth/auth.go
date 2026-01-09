@@ -8,8 +8,10 @@ import (
 	"errors"
 	"time"
 
+	"task-flow/internal/model"
 	"task-flow/internal/pkg/jwt"
 	"task-flow/internal/repository"
+	"task-flow/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -127,4 +129,36 @@ func (s *Service) Logout(ctx context.Context, refreshPlain string) error {
 		return nil
 	}
 	return s.RefreshTokenRepo.RevokeByHash(ctx, hashToken(refreshPlain))
+}
+
+func (s *Service) Register(ctx context.Context, email, password string) error {
+	// Check if email already exists
+	_, found, err := s.UserRepo.FindByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if found {
+		return errors.New("email already registered")
+	}
+
+	// Hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	// Generate user ID
+	id, err := utils.GenerateID()
+	if err != nil {
+		return err
+	}
+
+	// Create user
+	user := model.User{
+		ID:       id,
+		Email:    email,
+		PassHash: hash,
+	}
+
+	return s.UserRepo.Create(ctx, user)
 }
