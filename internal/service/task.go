@@ -41,3 +41,16 @@ func (s *Service) GetTasks(ctx context.Context) ([]model.Task, error) {
 
 	return tasks, nil
 }
+
+func (s *Service) DeleteTask(ctx context.Context, id string) error {
+	return s.TaskRepo.DeleteTask(ctx, id)
+}
+
+func (s *Service) FindByID(ctx context.Context, id string) (model.Task, error) {
+	task, err := s.TaskRepo.FindByID(ctx, id)
+	if err != nil {
+		return model.Task{}, err
+	}
+
+	return task, nil
+}
