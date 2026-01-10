@@ -40,6 +40,8 @@ func New(d Deps) *http.ServeMux {
 	// Task routes
 	mux.HandleFunc("GET /tasks", d.TaskHandler.GetTasks)
 	mux.HandleFunc("POST /tasks", d.TaskHandler.AddTask)
+	mux.HandleFunc("DELETE /tasks/{id}", d.TaskHandler.DeleteTask)
+	mux.HandleFunc("GET /tasks/{id}", d.TaskHandler.GetTasksByID)
 
 	return mux
 }
