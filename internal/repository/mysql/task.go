@@ -44,3 +44,28 @@ func (r *taskRepo) GetTasks(ctx context.Context) ([]model.Task, error) {
 
 	return tasks, nil
 }
+
+func (r *taskRepo) DeleteTask(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx,
+		"DELETE FROM tasks WHERE id = ?", id)
+
+	return err
+}
+
+func (r *taskRepo) FindByID(ctx context.Context, id string) (model.Task, error) {
+	var t model.Task
+	err := r.db.QueryRowContext(ctx,
+		"SELECT id, title, description FROM tasks WHERE id = ?",
+		id,
+	).Scan(&t.ID, &t.Title, &t.Description)
+
+	if err == sql.ErrNoRows {
+		return model.Task{}, nil
+	}
+
+	if err != nil {
+		return model.Task{}, err
+	}
+
+	return t, nil
+}
