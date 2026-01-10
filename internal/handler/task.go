@@ -47,3 +47,52 @@ func (h *TaskHandler) AddTask(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusCreated, map[string]string{"message": " Add new task successfully"})
 }
+
+func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	if id == "" {
+		httpx.Error(w, http.StatusBadRequest, "id is required")
+		return
+	}
+
+	task, err := h.Service.FindByID(r.Context(), id)
+	if err != nil {
+		httpx.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if task.ID == "" {
+		httpx.Error(w, http.StatusNotFound, "task not found")
+		return
+	}
+
+	err = h.Service.DeleteTask(r.Context(), id)
+	if err != nil {
+		httpx.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, map[string]string{"message": "task deleted successfully"})
+}
+
+func (h *TaskHandler) GetTasksByID(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		httpx.Error(w, http.StatusBadRequest, "id is required")
+		return
+	}
+
+	task, err := h.Service.FindByID(r.Context(), id)
+	if err != nil {
+		httpx.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if task.ID == "" {
+		httpx.Error(w, http.StatusNotFound, "task not found")
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, task)
+}
