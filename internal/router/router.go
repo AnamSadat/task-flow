@@ -38,10 +38,10 @@ func New(d Deps) *http.ServeMux {
 	mux.Handle("GET /users/me", middleware.RequireAccessJWT(d.AuthMid)(http.HandlerFunc(d.UserHandler.Me)))
 
 	// Task routes
-	mux.HandleFunc("GET /tasks", d.TaskHandler.GetTasks)
-	mux.HandleFunc("POST /tasks", d.TaskHandler.AddTask)
-	mux.HandleFunc("DELETE /tasks/{id}", d.TaskHandler.DeleteTask)
-	mux.HandleFunc("GET /tasks/{id}", d.TaskHandler.GetTasksByID)
+	mux.Handle("GET /tasks", middleware.RequireAccessJWT(d.AuthMid)(http.HandlerFunc(d.TaskHandler.GetTasks)))
+	mux.Handle("POST /tasks", middleware.RequireAccessJWT(d.AuthMid)(http.HandlerFunc(d.TaskHandler.AddTask)))
+	mux.Handle("DELETE /tasks/{id}", middleware.RequireAccessJWT(d.AuthMid)(http.HandlerFunc(d.TaskHandler.DeleteTask)))
+	mux.Handle("GET /tasks/{id}", middleware.RequireAccessJWT(d.AuthMid)(http.HandlerFunc(d.TaskHandler.GetTasksByID)))
 
 	return mux
 }
