@@ -5,6 +5,7 @@ go 1.25.1
 require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors v1.11.1
 	golang.org/x/crypto v0.46.0
 )
 

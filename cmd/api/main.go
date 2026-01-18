@@ -18,6 +18,7 @@ import (
 	authservice "task-flow/internal/service/auth"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -60,9 +61,17 @@ func main() {
 		AuthMid:     authMid,
 	})
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+
 	srv := &http.Server{
-		Addr:              cfg.Addr,
-		Handler:           middleware.Logger(mux),
+		Addr: cfg.Addr,
+		// Handler: middleware.CORS(middleware.Logger(mux)), // If using manual CORS
+		Handler:           c.Handler(middleware.Logger(mux)),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
